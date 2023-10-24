@@ -83,7 +83,7 @@ car-xil-program: #$(bit)
 	@echo "Programming board $(BOARD) ($(XILINX_PART))"
 	$(VIVADOENV) $(VIVADO) $(VIVADOFLAGS) -source $(CAR_XIL_DIR)/scripts/program.tcl
 
-car-xil-flash: $(CAR_SW_DIR)/boot/linux.gpt.bin
+car-xil-flash: $(CAR_SW_DIR)/boot/linux.gpt.min.bin
 	$(VIVADOENV) FILE=$< OFFSET=0 $(VIVADO) $(VIVADOFLAGS) -source $(CAR_XIL_DIR)/scripts/flash_spi.tcl
 
 car-xil-clean:

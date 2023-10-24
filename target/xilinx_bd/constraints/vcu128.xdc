@@ -423,8 +423,8 @@ set_property IOSTANDARD  LVCMOS18 [get_ports "uart_tx_o"] ;# Bank  67 VCCO - VCC
 #set_property IOSTANDARD  POD12_DCI [get_ports "PL_DDR4_DQ33"] ;# Bank  64 VCCO - DDR4_VDDQ_1V2 - IO_L2N_T0L_N3_64
 #set_property PACKAGE_PIN BP28      [get_ports "PL_DDR4_DQ35"] ;# Bank  64 VCCO - DDR4_VDDQ_1V2 - IO_L2P_T0L_N2_64
 #set_property IOSTANDARD  POD12_DCI [get_ports "PL_DDR4_DQ35"] ;# Bank  64 VCCO - DDR4_VDDQ_1V2 - IO_L2P_T0L_N2_64
-#set_property PACKAGE_PIN BM29 [get_ports cpu_reset]
-#set_property IOSTANDARD LVCMOS12 [get_ports cpu_reset]
+set_property PACKAGE_PIN BM29 [get_ports cpu_reset]
+set_property IOSTANDARD LVCMOS12 [get_ports cpu_reset]
 #set_property PACKAGE_PIN BM28      [get_ports "PL_DDR4_DM4_B"] ;# Bank  64 VCCO - DDR4_VDDQ_1V2 - IO_L1P_T0L_N0_DBC_64
 #set_property IOSTANDARD  POD12_DCI [get_ports "PL_DDR4_DM4_B"] ;# Bank  64 VCCO - DDR4_VDDQ_1V2 - IO_L1P_T0L_N0_DBC_64
 #set_property PACKAGE_PIN A16      [get_ports "FMCP_HSPC_LA22_N"] ;# Bank  71 VCCO - VADJ     - IO_L24N_T3U_N11_71

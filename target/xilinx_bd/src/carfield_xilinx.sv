@@ -547,6 +547,65 @@ module carfield_xilinx
   assign periph_axi_s_axi_rvalid      = periph_bd_soc_rsp.r_valid  ;
 
   //////////////////
+  // SPI Adaption //
+  //////////////////
+
+  logic spi_sck_soc;
+  logic [1:0] spi_cs_soc;
+  logic [3:0] spi_sd_soc_out;
+  logic [3:0] spi_sd_soc_in;
+
+  logic spi_sck_en;
+  logic [1:0] spi_cs_en;
+  logic [3:0] spi_sd_en;
+
+  //////////////////
+  // QSPI         //
+  //////////////////
+
+  logic                 qspi_clk;
+  logic                 qspi_clk_ts;
+  logic [3:0]           qspi_dqi;
+  logic [3:0]           qspi_dqo_ts;
+  logic [3:0]           qspi_dqo;
+  logic [SpihNumCs-1:0] qspi_cs_b;
+  logic [SpihNumCs-1:0] qspi_cs_b_ts;
+
+  assign qspi_clk      = spi_sck_soc;
+  assign qspi_cs_b     = spi_cs_soc;
+  assign qspi_dqo      = spi_sd_soc_out;
+  assign spi_sd_soc_in = qspi_dqi;
+  // Tristate - Enable
+  assign qspi_clk_ts  = ~spi_sck_en;
+  assign qspi_cs_b_ts = ~spi_cs_en;
+  assign qspi_dqo_ts  = ~spi_sd_en;
+
+  // On VCU128/ZCU102, SPI ports are not directly available
+  STARTUPE3 #(
+     .PROG_USR("FALSE"),
+     .SIM_CCLK_FREQ(0.0)
+  )
+  STARTUPE3_inst (
+     .CFGCLK    (),
+     .CFGMCLK   (),
+     .DI        (qspi_dqi),
+     .EOS       (),
+     .PREQ      (),
+     .DO        (qspi_dqo),
+     .DTS       (qspi_dqo_ts),
+     .FCSBO     (qspi_cs_b[1]),
+     .FCSBTS    (qspi_cs_b_ts[1]),
+     .GSR       (1'b0),
+     .GTS       (1'b0),
+     .KEYCLEARB (1'b1),
+     .PACK      (1'b0),
+     .USRCCLKO  (qspi_clk),
+     .USRCCLKTS (qspi_clk_ts),
+     .USRDONEO  (1'b1),
+     .USRDONETS (1'b1)
+  );
+
+  //////////////////
   // Carfield SoC //
   //////////////////
 
@@ -616,13 +675,13 @@ module carfield_xilinx
       .i2c_scl_i                 (),
       .i2c_scl_en_o              (),
       // SPI Host Interface
-      .spih_sck_o                (),
-      .spih_sck_en_o             (),
-      .spih_csb_o                (),
-      .spih_csb_en_o             (),
-      .spih_sd_o                 (),
-      .spih_sd_en_o              (),
-      .spih_sd_i                 (),
+      .spih_sck_o                (spi_sck_soc),
+      .spih_sck_en_o             (spi_sck_en),
+      .spih_csb_o                (spi_cs_soc),
+      .spih_csb_en_o             (spi_cs_en),
+      .spih_sd_o                 (spi_sd_soc_out),
+      .spih_sd_en_o              (spi_sd_en),
+      .spih_sd_i                 (spi_sd_soc_in),
       // GPIO interface
       .gpio_i                    (gpio_i),
       .gpio_o                    (),

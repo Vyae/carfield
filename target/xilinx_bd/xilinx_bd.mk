@@ -4,22 +4,18 @@
 #
 # Cyril Koenig <cykoenig@iis.ee.ethz.ch>
 
-# ZCU102
-#XILINX_PART_bd         := xczu9eg-ffvb1156-2-e
-#XILINX_BOARD_bd        := xilinx.com:zcu102:part0:3.4
-#XILINX_PORT_bd         := 3332
-#XILINX_HOST_bd         := bordcomputer
-#XILINX_FPGA_PATH_bd    :=
-BOARD_bd     := vcu128
+BOARD_bd            := vcu128
 XILINX_PART_bd      := xcvu37p-fsvh2892-2L-e
 XILINX_BOARD_bd     := xilinx.com:vcu128:part0:1.0
 XILINX_PORT_bd      := 3232
 XILINX_HOST_bd      := bordcomputer
 XILINX_FPGA_PATH_bd := xilinx_tcf/Xilinx/091847100638A
 
+out_bd := target/xilinx_bd/out
+bit_bd := $(out_bd)/carfield_$(BOARD_bd).bit
 
 # Derive bender args
-xilinx_targs_bd = $(xilinx_targs) -t xilinx_bd -t zcu102
+xilinx_targs_bd = $(xilinx_targs) -t xilinx_bd -t $(BOARD_bd)
 xilinx_defs_bd = $(xilinx_defs) -DNO_HYPERBUS=1
 
 # Vivado variables
@@ -33,8 +29,12 @@ VIVADOENV_bd :=  BOARD=$(BOARD_bd)         \
 MODE_bd        ?= gui
 VIVADOFLAGS_bd := -nojournal
 
-car-xil-bd-all: target/xilinx_bd/carfield_ip/carfield_ip.xpr target/xilinx_bd/scripts/add_includes.tcl
+car-xil-bd-all: $(bit_bd)
+
+$(bit_bd): target/xilinx_bd/scripts/add_includes.tcl target/xilinx_bd/carfield_ip/carfield_ip.xpr
+	mkdir $(out_bd)
 	cd target/xilinx_bd && $(VIVADOENV_bd) $(VIVADO) $(VIVADOFLAGS_bd) -mode $(MODE_bd) -source scripts/run.tcl
+	find target/xilinx_bd/carfield_${BOARD_bd} -name "*.bit" | xargs cp $(bit_bd))
 
 target/xilinx_bd/carfield_ip/carfield_ip.xpr: target/xilinx_bd/scripts/add_sources.tcl
 	cd target/xilinx_bd && $(VIVADOENV_bd) $(VIVADO) $(VIVADOFLAGS_bd) -mode batch -source scripts/run_carfield_ip.tcl
@@ -58,6 +58,6 @@ target/xilinx_bd/scripts/add_sources.tcl: Bender.yml
 	echo "" >> $@
 
 car-xil-bd-clean:
-	cd target/xilinx_bd && rm -rf scripts/add_sources.tcl* carfield_ip *.log
+	cd target/xilinx_bd && rm -rf scripts/add_sources.tcl* *.log *.jou *.str carfield_* *.ltx out
 
 .PHONY: car-xil-bd-all car-xil-bd-clean

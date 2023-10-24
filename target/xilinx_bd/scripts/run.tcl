@@ -20,7 +20,7 @@ update_ip_catalog
 
 import_files -fileset constrs_1 -norecurse constraints/$::env(BOARD).xdc
 
-source scripts/carfield_bd.tcl
+source scripts/carfield_bd_$::env(BOARD).tcl
 source scripts/add_includes.tcl
 
 make_wrapper -files [get_files $project/$project.srcs/sources_1/bd/design_1/design_1.bd] -top
@@ -67,6 +67,51 @@ set_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} -value {-sfcu} -object
 launch_runs synth_1
 wait_on_run synth_1
 open_run synth_1 -name synth_1
+
+# Instantiate ILA
+set DEBUG [llength [get_nets -hier -filter {MARK_DEBUG == 1}]]
+if ($DEBUG) {
+  # Create core
+  puts "Creating debug core..."
+  create_debug_core u_ila_0 ila
+  set_property -dict "ALL_PROBE_SAME_MU true ALL_PROBE_SAME_MU_CNT 4 C_ADV_TRIGGER true C_DATA_DEPTH 16384 \
+   C_EN_STRG_QUAL true C_INPUT_PIPE_STAGES 0 C_TRIGIN_EN false C_TRIGOUT_EN false" [get_debug_cores u_ila_0]
+  ## Clock
+  set_property port_width 1 [get_debug_ports u_ila_0/clk]
+  connect_debug_port u_ila_0/clk [get_nets design_1_i/clk_wiz_0_clk_50]
+  # Get nets to debug
+  set debugNets [lsort -dictionary [get_nets -hier -filter {MARK_DEBUG == 1}]]
+  set netNameLast ""
+  set probe_i 0
+  # Loop through all nets (add extra list element to ensure last net is processed)
+  foreach net [concat $debugNets {""}] {
+    # Remove trailing array index
+    regsub {\[[0-9]*\]$} $net {} netName
+    # Create probe after all signals with the same name have been collected
+    if {$netNameLast != $netName} {
+      if {$netNameLast != ""} {
+          puts "Creating probe $probe_i with width [llength $sigList] for signal '$netNameLast'"
+          # probe0 already exists, and does not need to be created
+          if {$probe_i != 0} {
+            create_debug_port u_ila_0 probe
+          }
+          set_property port_width [llength $sigList] [get_debug_ports u_ila_0/probe$probe_i]
+          set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe$probe_i]
+          connect_debug_port u_ila_0/probe$probe_i [get_nets $sigList]
+          incr probe_i
+      }
+      set sigList ""
+    }
+    lappend sigList $net
+    set netNameLast $netName
+  }
+  # Need to save save constraints before implementing the core
+  set_property target_constrs_file [get_files $::env(BOARD).xdc] [current_fileset -constrset]
+  save_constraints -force
+  implement_debug_core
+  write_debug_probes -force probes.ltx
+}
+
 
 # Implementation
 launch_runs impl_1
