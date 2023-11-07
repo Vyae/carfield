@@ -65,7 +65,7 @@ CAR_SW_TEST_SRCS_C	= $(filter-out $(CAR_ELFLOAD_BLOCKING_SAFED_SRC_C) $(CAR_ELFL
 CAR_SW_TEST_DRAM_DUMP	= $(CAR_SW_TEST_SRCS_S:.S=.car.dram.dump) $(CAR_SW_TEST_SRCS_C:.c=.car.dram.dump)
 CAR_SW_TEST_DRAM_SLM	= $(CAR_SW_TEST_SRCS_S:.S=.car.dram.slm)  $(CAR_SW_TEST_SRCS_C:.c=.car.dram.slm)
 CAR_SW_TEST_SPM_DUMP	= $(CAR_SW_TEST_SRCS_S:.S=.car.spm.dump)  $(CAR_SW_TEST_SRCS_C:.c=.car.spm.dump)
-CAR_SW_TEST_L2_DUMP	= $(CAR_SW_TEST_SRCS_S:.S=.car.l2.dump)   $(CAR_SW_TEST_SRCS_C:.c=.car.l2.dump)
+CAR_SW_TEST_L2_DUMP		= $(CAR_SW_TEST_SRCS_S:.S=.car.l2.dump)   $(CAR_SW_TEST_SRCS_C:.c=.car.l2.dump)
 CAR_SW_TEST_SPM_ROMH	= $(CAR_SW_TEST_SRCS_S:.S=.car.rom.memh)  $(CAR_SW_TEST_SRCS_C:.c=.car.rom.memh)
 CAR_SW_TEST_SPM_GPTH	= $(CAR_SW_TEST_SRCS_S:.S=.car.gpt.memh)  $(CAR_SW_TEST_SRCS_C:.c=.car.gpt.memh)
 
@@ -98,6 +98,7 @@ include $(CAR_SW_DIR)/tests/bare-metal/safed/sw.mk
 
 car-safed-sw-offload-tests:
 	$(call offload_tests_template,$(SAFED_HEADER_TARGETS),safed,$(CAR_ELFLOAD_BLOCKING_SAFED_SRC_C),$(CAR_ELFLOAD_BLOCKING_SAFED_PATH))
+	$(call offload_tests_template,$(SAFED_HEADER_TARGETS_FRTOS),safed,$(CAR_ELFLOAD_BLOCKING_SAFED_SRC_C),$(CAR_ELFLOAD_BLOCKING_SAFED_PATH))
 
 ###################
 # Integer Cluster #
