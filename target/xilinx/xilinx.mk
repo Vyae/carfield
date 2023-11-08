@@ -31,7 +31,7 @@ xilinx_targs_sa += $(addprefix -t ,$(BOARD))
 
 # Outputs
 out := $(CAR_XIL_DIR)/out
-bit := $(out)/$(PROJECT)_top_xilinx.bit
+bit ?= $(out)/$(PROJECT)_top_xilinx.bit
 mcs := $(out)/$(PROJECT)_top_xilinx.mcs
 
 # Vivado variables
@@ -83,8 +83,10 @@ car-xil-program: #$(bit)
 	@echo "Programming board $(BOARD) ($(XILINX_PART))"
 	$(VIVADOENV) $(VIVADO) $(VIVADOFLAGS) -source $(CAR_XIL_DIR)/scripts/program.tcl
 
-car-xil-flash: $(CAR_SW_DIR)/boot/linux.gpt.min.bin
-	$(VIVADOENV) FILE=$< OFFSET=0 $(VIVADO) $(VIVADOFLAGS) -source $(CAR_XIL_DIR)/scripts/flash_spi.tcl
+car-xil-flash: $(CAR_SW_DIR)/boot/linux.gpt.bin
+	# Attention ! On this branch only uboot is flashed on the board (boot over Ethernet)
+	dd if=$< of=$(CAR_SW_DIR)/boot/linux.gpt.min.bin bs=512 count=8192
+	$(VIVADOENV) FILE=$(CAR_SW_DIR)/boot/linux.gpt.min.bin OFFSET=0 $(VIVADO) $(VIVADOFLAGS) -source $(CAR_XIL_DIR)/scripts/flash_spi.tcl
 
 car-xil-clean:
 	cd $(CAR_XIL_DIR) && rm -rf scripts/add_sources.tcl* *.log *.jou *.str *.mif *.xci *.xpr .Xil/ $(out) $(PROJECT).srcs $(PROJECT).cache $(PROJECT).hw $(PROJECT).ioplanning $(PROJECT).ip_user_files $(PROJECT).runs $(PROJECT).sim
