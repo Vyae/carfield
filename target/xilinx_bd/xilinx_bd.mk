@@ -32,9 +32,9 @@ VIVADOFLAGS_bd := -nojournal
 car-xil-bd-all: $(bit_bd)
 
 $(bit_bd): target/xilinx_bd/scripts/add_includes.tcl target/xilinx_bd/carfield_ip/carfield_ip.xpr
-	mkdir $(out_bd)
+	mkdir -p $(out_bd)
 	cd target/xilinx_bd && $(VIVADOENV_bd) $(VIVADO) $(VIVADOFLAGS_bd) -mode $(MODE_bd) -source scripts/run.tcl
-	find target/xilinx_bd/carfield_${BOARD_bd} -name "*.bit" | xargs cp $(bit_bd)
+	find target/xilinx_bd/carfield_${BOARD_bd} -regex ".*\.ltx\|.*\.bit" | xargs -I {} cp {} $(out_bd)
 
 target/xilinx_bd/carfield_ip/carfield_ip.xpr: target/xilinx_bd/scripts/add_sources.tcl
 	cd target/xilinx_bd && $(VIVADOENV_bd) $(VIVADO) $(VIVADOFLAGS_bd) -mode batch -source scripts/run_carfield_ip.tcl

@@ -135,6 +135,7 @@ xilinx.com:ip:proc_sys_reset:5.0\
 xilinx.com:ip:util_ds_buf:2.1\
 xilinx.com:ip:vio:3.0\
 xilinx.com:ip:smartconnect:1.0\
+xilinx.com:ip:xdma:4.1\
 "
 
    set list_ips_missing ""
@@ -202,6 +203,13 @@ proc create_root_design { parentCell } {
 
   set mdio_mdc [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:mdio_rtl:1.0 mdio_mdc ]
 
+  set pci_express_x1 [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:pcie_7x_mgt_rtl:1.0 pci_express_x1 ]
+
+  set pcie_refclk [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:diff_clock_rtl:1.0 pcie_refclk ]
+  set_property -dict [ list \
+   CONFIG.FREQ_HZ {100000000} \
+   ] $pcie_refclk
+
   set sgmii_lvds [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:sgmii_rtl:1.0 sgmii_lvds ]
 
   set sgmii_phyclk [ create_bd_intf_port -mode Slave -vlnv xilinx.com:interface:diff_clock_rtl:1.0 sgmii_phyclk ]
@@ -226,6 +234,10 @@ proc create_root_design { parentCell } {
   set jtag_tdo_o [ create_bd_port -dir O jtag_tdo_o ]
   set jtag_tms_i [ create_bd_port -dir I jtag_tms_i ]
   set jtag_vdd_o [ create_bd_port -dir O jtag_vdd_o ]
+  set pcie_perstn [ create_bd_port -dir I -type rst pcie_perstn ]
+  set_property -dict [ list \
+   CONFIG.POLARITY {ACTIVE_LOW} \
+ ] $pcie_perstn
   set reset [ create_bd_port -dir I -type rst reset ]
   set_property -dict [ list \
    CONFIG.POLARITY {ACTIVE_HIGH} \
@@ -349,13 +361,23 @@ proc create_root_design { parentCell } {
    CONFIG.USE_BOARD_FLOW {true} \
  ] $util_ds_buf_0
 
+  # Create instance: util_ds_buf_1, and set properties
+  set util_ds_buf_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_ds_buf:2.1 util_ds_buf_1 ]
+  set_property -dict [ list \
+   CONFIG.C_BUF_TYPE {IBUFDSGTE} \
+   CONFIG.DIFF_CLK_IN_BOARD_INTERFACE {pcie_refclk} \
+   CONFIG.USE_BOARD_FLOW {true} \
+ ] $util_ds_buf_1
+
   # Create instance: vio_0, and set properties
   set vio_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:vio:3.0 vio_0 ]
   set_property -dict [ list \
    CONFIG.C_EN_PROBE_IN_ACTIVITY {0} \
    CONFIG.C_NUM_PROBE_IN {0} \
    CONFIG.C_NUM_PROBE_OUT {3} \
+   CONFIG.C_PROBE_OUT0_INIT_VAL {0x2} \
    CONFIG.C_PROBE_OUT0_WIDTH {2} \
+   CONFIG.C_PROBE_OUT1_INIT_VAL {0x2} \
    CONFIG.C_PROBE_OUT1_WIDTH {2} \
  ] $vio_0
 
@@ -370,7 +392,8 @@ proc create_root_design { parentCell } {
   # Create instance: xbar_periph_in, and set properties
   set xbar_periph_in [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 xbar_periph_in ]
   set_property -dict [ list \
-   CONFIG.NUM_SI {3} \
+   CONFIG.NUM_CLKS {2} \
+   CONFIG.NUM_SI {4} \
  ] $xbar_periph_in
 
   # Create instance: xbar_periph_out, and set properties
@@ -380,6 +403,13 @@ proc create_root_design { parentCell } {
    CONFIG.NUM_MI {3} \
    CONFIG.NUM_SI {1} \
  ] $xbar_periph_out
+
+  # Create instance: xdma_0, and set properties
+  set xdma_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xdma:4.1 xdma_0 ]
+  set_property -dict [ list \
+   CONFIG.PCIE_BOARD_INTERFACE {pci_express_x1} \
+   CONFIG.SYS_RST_N_BOARD_INTERFACE {pcie_perstn} \
+ ] $xdma_0
 
   # Create interface connections
   connect_bd_intf_net -intf_net Conn [get_bd_intf_pins carfield_xilinx_ip_0/periph_axi_m] [get_bd_intf_pins xbar_periph_out/S00_AXI]
@@ -395,12 +425,15 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net carfield_xilinx_ip_0_dram_axi [get_bd_intf_pins carfield_xilinx_ip_0/dram_axi] [get_bd_intf_pins xbar_dram/S00_AXI]
   connect_bd_intf_net -intf_net ddr4_0_C0_DDR4 [get_bd_intf_ports ddr4_sdram] [get_bd_intf_pins ddr4_0/C0_DDR4]
   connect_bd_intf_net -intf_net diff_clock_rtl_1 [get_bd_intf_ports sys_clk] [get_bd_intf_pins util_ds_buf_0/CLK_IN_D]
+  connect_bd_intf_net -intf_net pcie_refclk_1 [get_bd_intf_ports pcie_refclk] [get_bd_intf_pins util_ds_buf_1/CLK_IN_D]
   connect_bd_intf_net -intf_net sgmii_phyclk_1 [get_bd_intf_ports sgmii_phyclk] [get_bd_intf_pins axi_ethernet_0/lvds_clk]
   connect_bd_intf_net -intf_net smartconnect_0_M00_AXI [get_bd_intf_pins ddr4_0/C0_DDR4_S_AXI] [get_bd_intf_pins xbar_dram/M00_AXI]
   connect_bd_intf_net -intf_net smartconnect_1_M00_AXI [get_bd_intf_pins axi_ethernet_0/s_axi] [get_bd_intf_pins xbar_periph_out/M00_AXI]
   connect_bd_intf_net -intf_net smartconnect_2_M00_AXI [get_bd_intf_pins carfield_xilinx_ip_0/periph_axi_s] [get_bd_intf_pins xbar_periph_in/M00_AXI]
   connect_bd_intf_net -intf_net xbar_periph_out_M01_AXI [get_bd_intf_pins axi_dma_0/S_AXI_LITE] [get_bd_intf_pins xbar_periph_out/M01_AXI]
   connect_bd_intf_net -intf_net xbar_periph_out_M02_AXI [get_bd_intf_pins ddr4_0/C0_DDR4_S_AXI_CTRL] [get_bd_intf_pins xbar_periph_out/M02_AXI]
+  connect_bd_intf_net -intf_net xdma_0_M_AXI [get_bd_intf_pins xbar_periph_in/S03_AXI] [get_bd_intf_pins xdma_0/M_AXI]
+  connect_bd_intf_net -intf_net xdma_0_pcie_mgt [get_bd_intf_ports pci_express_x1] [get_bd_intf_pins xdma_0/pcie_mgt]
 
   # Create port connections
   connect_bd_net -net axi_dma_0_mm2s_cntrl_reset_out_n [get_bd_pins axi_dma_0/mm2s_cntrl_reset_out_n] [get_bd_pins axi_ethernet_0/axi_txc_arstn]
@@ -430,6 +463,7 @@ proc create_root_design { parentCell } {
   connect_bd_net -net jtag_tdi_i_1 [get_bd_ports jtag_tdi_i] [get_bd_pins carfield_xilinx_ip_0/jtag_tdi_i]
   connect_bd_net -net jtag_tms_i_1 [get_bd_ports jtag_tms_i] [get_bd_pins carfield_xilinx_ip_0/jtag_tms_i]
   connect_bd_net -net low_dout [get_bd_pins carfield_xilinx_ip_0/testmode_i] [get_bd_pins low/dout]
+  connect_bd_net -net pcie_perstn_1 [get_bd_ports pcie_perstn] [get_bd_pins xdma_0/sys_rst_n]
   connect_bd_net -net psr_10_interconnect_aresetn [get_bd_pins psr_10/interconnect_aresetn] [get_bd_pins xbar_dram/aresetn] [get_bd_pins xbar_periph_in/aresetn] [get_bd_pins xbar_periph_out/aresetn]
   connect_bd_net -net psr_10_peripheral_aresetn [get_bd_pins axi_dma_0/axi_resetn] [get_bd_pins axi_ethernet_0/s_axi_lite_resetn] [get_bd_pins psr_10/peripheral_aresetn]
   connect_bd_net -net psr_333_peripheral_aresetn [get_bd_pins ddr4_0/c0_ddr4_aresetn] [get_bd_pins psr_333/peripheral_aresetn]
@@ -438,9 +472,12 @@ proc create_root_design { parentCell } {
   connect_bd_net -net reset_1 [get_bd_ports reset] [get_bd_pins psr_10/ext_reset_in] [get_bd_pins psr_333/ext_reset_in]
   connect_bd_net -net uart_rx_i_1 [get_bd_ports uart_rx_i] [get_bd_pins carfield_xilinx_ip_0/uart_rx_i]
   connect_bd_net -net util_ds_buf_0_IBUF_OUT [get_bd_pins clk_wiz_0/clk_in1] [get_bd_pins ddr4_0/c0_sys_clk_i] [get_bd_pins util_ds_buf_0/IBUF_OUT]
+  connect_bd_net -net util_ds_buf_1_IBUF_DS_ODIV2 [get_bd_pins util_ds_buf_1/IBUF_DS_ODIV2] [get_bd_pins xdma_0/sys_clk]
+  connect_bd_net -net util_ds_buf_1_IBUF_OUT [get_bd_pins util_ds_buf_1/IBUF_OUT] [get_bd_pins xdma_0/sys_clk_gt]
   connect_bd_net -net vio_0_probe_out0 [get_bd_pins carfield_xilinx_ip_0/boot_mode_i] [get_bd_pins vio_0/probe_out0]
   connect_bd_net -net vio_0_probe_out1 [get_bd_pins carfield_xilinx_ip_0/boot_mode_safety_i] [get_bd_pins vio_0/probe_out1]
   connect_bd_net -net vio_0_probe_out2 [get_bd_pins psr_10/aux_reset_in] [get_bd_pins psr_333/aux_reset_in] [get_bd_pins vio_0/probe_out2]
+  connect_bd_net -net xdma_0_axi_aclk [get_bd_pins xbar_periph_in/aclk1] [get_bd_pins xdma_0/axi_aclk]
 
   # Create address segments
   assign_bd_address -offset 0x00000000 -range 0x0001000000000000 -target_address_space [get_bd_addr_spaces axi_dma_0/Data_SG] [get_bd_addr_segs carfield_xilinx_ip_0/periph_axi_s/reg0] -force
@@ -450,12 +487,12 @@ proc create_root_design { parentCell } {
   assign_bd_address -offset 0x40C00000 -range 0x00040000 -target_address_space [get_bd_addr_spaces carfield_xilinx_ip_0/periph_axi_m] [get_bd_addr_segs axi_ethernet_0/s_axi/Reg0] -force
   assign_bd_address -offset 0x80000000 -range 0x80000000 -target_address_space [get_bd_addr_spaces carfield_xilinx_ip_0/dram_axi] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
   assign_bd_address -offset 0x80000000 -range 0x00100000 -target_address_space [get_bd_addr_spaces carfield_xilinx_ip_0/periph_axi_m] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP_CTRL/C0_REG] -force
+  assign_bd_address -offset 0x00000000 -range 0x0001000000000000 -target_address_space [get_bd_addr_spaces xdma_0/M_AXI] [get_bd_addr_segs carfield_xilinx_ip_0/periph_axi_s/reg0] -force
 
 
   # Restore current instance
   current_bd_instance $oldCurInst
 
-  validate_bd_design
   save_bd_design
 }
 # End of create_root_design()
@@ -467,4 +504,6 @@ proc create_root_design { parentCell } {
 
 create_root_design ""
 
+
+common::send_gid_msg -ssname BD::TCL -id 2053 -severity "WARNING" "This Tcl script was generated from a block design that has not been validated. It is possible that design <$design_name> may result in errors during validation."
 

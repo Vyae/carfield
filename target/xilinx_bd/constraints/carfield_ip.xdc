@@ -1,4 +1,11 @@
 
+###################
+# Global Settings #
+###################
+
+# The output of the reset synchronizer
+set_false_path -from [get_ports cpu_reset*]
+
 #####################
 # Timing Parameters #
 #####################
@@ -422,3 +429,14 @@ set_max_delay -datapath \
  -from [get_pins i_carfield_xilinx/i_carfield/i_cheshire_wrap/i_cheshire_ext_llc_cdc_src/i_cdc_fifo_gray_*/*reg*/C] \
  -to [get_pins i_hyper_cdc_dst/i_cdc_fifo_gray_*/*i_sync/*reg*/D] \
  $SOC_TCK
+
+####################
+# Reset Generators #
+####################
+
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {ORIG_REF_NAME=="rstgen" || REF_NAME=="rstgen"}]
+# Relax constraints on synchronous for the islands (since they are clock-gated at sw-reset)
+set_false_path -through [get_pins -hier -filter { NAME =~ "*_rst/q_reg[0]/Q" } ]
+set_false_path -hold -through [get_cells -hier -filter {REF_NAME == rstgen || ORIG_REF_NAME == rstgen} -regexp .*gen_domain.*]
+# Isolate status are cross domains
+set_false_path -hold -to [get_pins -hier -filter { NAME =~ "*isolate_status/q_reg[0]/D" }]
