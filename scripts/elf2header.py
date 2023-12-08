@@ -27,6 +27,7 @@ c_header = """\
 #ifdef USE_HYPER
 #include "hyperbus_test.h"
 #endif
+#include <stddef.h>
 
 extern int __cluster_code_start;
 extern int __cluster_code_end;
@@ -142,10 +143,12 @@ class stim(object):
 
     with open(filename, 'w') as file:
       file.write(c_header)
-      file.write('int load_binary() {\n' )
+      file.write('int load_binary(void *target_base) {\n' )
       file.write(c_function)
-      for key in sorted(self.mem.keys()):
-        file.write('  (*(volatile unsigned int *)(uint64_t)(0x%X)) = 0x%0*X ;\n' % (int(key), width*2, self.mem.get(key)))
+      memkeys = sorted(self.mem.keys())
+      offset = memkeys[0]
+      for key in memkeys:
+        file.write('  (*(volatile uint32_t *)(target_base + 0x%X)) = 0x%0*X ;\n' % ((int(key) - int(offset)), width*2, self.mem.get(key)))
       file.write('#endif\n')
       file.write('return 0; \n }\n')
 

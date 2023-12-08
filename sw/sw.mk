@@ -167,21 +167,43 @@ $(CAR_SW_DIR)/boot/linux.gpt.bin: $(CHS_SW_DIR)/boot/zsl.rom.bin $(CAR_SW_DIR)/b
 
 CAR_CVA6_SDK      ?= $(realpath cva6-sdk)
 CAR_CROSS_COMPILE := $(CAR_CVA6_SDK)/buildroot/output/host/bin/riscv64-buildroot-linux-gnu-
+#CAR_CROSS_COMPILE := /usr/pack/riscv-1.0-kgf/riscv64-gcc-11.2.0/bin/riscv64-unknown-linux-gnu-
 CAR_APP_CC        := $(CAR_CROSS_COMPILE)gcc
 CAR_APP_OBJDUMP   := $(CAR_CROSS_COMPILE)objdump
 CAR_APP_CCFLAGS   := -std=gnu99 -O0 -g -DLINUX_APP -fdata-sections -ffunction-sections
 CAR_APP_LDFLAGS   := -Wl,--gc-sections
 
-CAR_SW_APP_SRCS_C = $(wildcard $(CAR_SW_DIR)/tests/linux/*.c)
+
+CAR_LINUX_ELFLOAD_BLOCKING_SAFED_SRC_C := $(CAR_SW_DIR)/tests/linux/safed_offloader_blocking.c
+CAR_LINUX_ELFLOAD_BLOCKING_SAFED_PATH := $(basename $(CAR_LINUX_ELFLOAD_BLOCKING_SAFED_SRC_C))
+
+CAR_SW_APP_SRCS_C = $(filter-out $(CAR_LINUX_ELFLOAD_BLOCKING_SAFED_SRC_C), $(wildcard $(CAR_SW_DIR)/tests/linux/*.c))
 CAR_SW_APPS	= $(CAR_SW_APP_SRCS_C:.c=.car.app)
 
-car-sw-apps: $(CAR_SW_APPS)
+# Generate ELFs for blocking offload from cheshire.
+# Template function for offload tests
+define offload_apps_template
+	$(foreach header,$(1), \
+		cp $(header) $(CAR_SW_DIR)/tests/$(2)/payload.h; \
+		$(CAR_APP_CC) $(CAR_SW_INCLUDES) $(CAR_APP_CCFLAGS) -c $(3) -o $(4).$(basename $(notdir $(header))).car.app.o; \
+		$(CAR_APP_CC) $(CAR_SW_INCLUDES) $(CAR_APP_LDFLAGS) -o $(4).$(basename $(notdir $(header))).car.app $(4).$(basename $(notdir $(header))).car.app.o; \
+		$(CAR_APP_OBJDUMP) -d -r -S $(4).$(basename $(notdir $(header))).car.app.o > $(4).$(basename $(notdir $(header))).car.dump; \
+		$(RM) $(CAR_SW_DIR)/tests/$(2)/payload.h; \
+		$(RM) $(4).$(basename $(notdir $(header))).car.app.o; \
+	)
+endef
+
+car-sw-apps-clean:
+	rm $(CAR_SW_DIR)/tests/linux/*.car.*
+
+car-sw-apps-offload:
+	$(call offload_apps_template,$(SAFED_HEADER_TARGETS_FRTOS),linux,$(CAR_LINUX_ELFLOAD_BLOCKING_SAFED_SRC_C),$(CAR_LINUX_ELFLOAD_BLOCKING_SAFED_PATH))
+
+car-sw-apps: car-sw-build $(CAR_SW_APPS) car-sw-apps-offload
 	cp $(CAR_SW_APPS) $(CAR_CVA6_SDK)/rootfs/root/tests
 
 %.car.app: %.car.app.o
 	$(CAR_APP_CC) $(CAR_SW_INCLUDES) $(CAR_APP_LDFLAGS) -o $@ $<
-
-%.car.app.dump: %.car.app.o
 	$(CAR_APP_OBJDUMP) -S -d $< > $@
 
 %.car.app.o: %.c

@@ -5,7 +5,6 @@
 // Alessandro Ottaviano <aottaviano@iis.ee.ethz.ch>
 //
 
-#include <stdio.h>
 #include <stdint.h>
 
 #include "car_memory_map.h"
@@ -27,7 +26,7 @@ int main(void)
 
         // Here we assume that the offloader has to poll a status register to catch the end of
 	// computation of the Safety Island. Therefore, the offloading is blocking.
-	uint32_t ret = safed_offloader_blocking();
+	uint32_t ret = safed_offloader_blocking(0x60000000);
 
 	return ret;
 }

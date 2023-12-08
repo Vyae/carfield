@@ -261,12 +261,12 @@ uint32_t poll_safed_corestatus () {
 	return corestatus;
 }
 
-uint32_t safed_offloader_blocking () {
+uint32_t safed_offloader_blocking (void *target_base) {
 
 	uint32_t ret = 0;
 
 	// Load binary payload
-	load_binary();
+	load_binary(target_base);
 
 	// Select bootmode, write entry point, write launch signal
 	prepare_safed_boot();
