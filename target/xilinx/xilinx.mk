@@ -17,8 +17,8 @@ USE_ARTIFACTS ?= 0
 ifeq ($(BOARD),vcu128)
 	XILINX_PART  := xcvu37p-fsvh2892-2L-e
 	XILINX_BOARD := xilinx.com:vcu128:part0:1.0
-	XILINX_PORT  := 3232
-	FPGA_PATH    := xilinx_tcf/Xilinx/091847100638A
+	XILINX_PORT  := 3234
+	FPGA_PATH    := xilinx_tcf/Xilinx/682246154360A
 	XILINX_HOST  := bordcomputer
 	ips-names    := xlnx_mig_ddr4 xlnx_clk_wiz xlnx_vio
 endif
