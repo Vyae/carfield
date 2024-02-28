@@ -7,9 +7,9 @@
 BOARD_bd            := vcu128
 XILINX_PART_bd      := xcvu37p-fsvh2892-2L-e
 XILINX_BOARD_bd     := xilinx.com:vcu128:part0:1.0
-XILINX_PORT_bd      := 3232
+XILINX_PORT_bd      := 3234
 XILINX_HOST_bd      := bordcomputer
-XILINX_FPGA_PATH_bd := xilinx_tcf/Xilinx/091847100638A
+XILINX_FPGA_PATH_bd := xilinx_tcf/Xilinx/682246154360A
 
 out_bd := target/xilinx_bd/out
 bit_bd := $(out_bd)/carfield_$(BOARD_bd).bit

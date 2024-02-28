@@ -153,7 +153,7 @@ packages:
     - unbent
   clic:
     revision: 9f3ead92e9ce4c867af7eae6fc64d1f5cd065ddf
-    version: null
+    version: 3.0.0-rc2
     source:
       Git: https://github.com/pulp-platform/clic.git
     dependencies:
@@ -196,7 +196,7 @@ packages:
       Git: https://github.com/pulp-platform/common_verification.git
     dependencies: []
   cv32e40p:
-    revision: e863f576699815b38cc9d80dbdede8ed5efd5991
+    revision: 1a93f340e9dadb9f7c8c471f27a40932c8b1c62e
     version: null
     source:
       Git: https://github.com/pulp-platform/cv32e40p.git

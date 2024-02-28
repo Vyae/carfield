@@ -123,6 +123,10 @@
       reg = <0x0 0x3005000 0x0 0x1000>;
       interrupts-extended = <&PLIC0 19 &PLIC0 21 &PLIC0 22 &PLIC0 24>;
     };
+    axi-rt@20c0000 {
+      compatible = "axi-rt,carfield";
+      reg = <0x0 0x20c0000 0x0 0x40000>;
+    };
     tcdm@10000000 {
       reg = <0x0 0x10000000 0x0 0x400000>;
     };
@@ -194,9 +198,11 @@
       clock-names = "s_axi_lite_clk", "axis_clk";
       // interrupt and mac_irq
       interrupts-extended = <&PLIC0 19 &PLIC0 24>;
-      //local-mac-address = [ 00 0A 35 04 E1 60 ]; // hero-vcu128-01
-      local-mac-address = [ 00 0A 35 04 E1 52 ]; // hero-vcu128-02
-      mac-address = [ 00 0A 35 04 E1 52 ];
+      local-mac-address = [ 00 0A 35 04 E1 60 ]; // hero-vcu128-01
+      //local-mac-address = [ 00 0A 35 04 E1 52 ]; // hero-vcu128-02
+      //local-mac-address = [ 00 0A 35 07 D5 DD ]; // hero-vcu128-03
+      //local-mac-address = [ 00 0A 35 07 DB 8C ]; // hero-vcu128-04
+      mac-address = [ 00 0A 35 04 E1 60 ];
       device_type = "network";
       axistream-connected = <&eth_dma0>;
       axistream-control-connected = <&eth_dma0>;
