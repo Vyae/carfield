@@ -65,7 +65,7 @@ packages:
     - axi
     - common_cells
   axi_obi:
-    revision: f8605eadbb15b8de7a0833843403e991be04a15b
+    revision: 659d9ffe87ee89e039d7c854e82aafca05ada817
     version: null
     source:
       Git: git@iis-git.ee.ethz.ch:carfield/axi_obi.git
@@ -83,8 +83,8 @@ packages:
     - common_cells
     - common_verification
   axi_rt:
-    revision: a9a5b3e91fe017da70c33b7e750b1a9eb35f31ee
-    version: 0.0.0-alpha.3
+    revision: 56074a195b1c8b05f4bdd73674e437bbcb35f2cd
+    version: 0.0.0-alpha.7
     source:
       Git: https://github.com/pulp-platform/axi_rt.git
     dependencies:
@@ -273,8 +273,8 @@ packages:
     dependencies:
     - tech_cells_generic
   hwpe-stream:
-    revision: ddc154424187dff42a8fcec946c768ceb13f13de
-    version: 1.6.4
+    revision: bcb4435f802add732f557dc7fa1c6b5dd8854458
+    version: 1.7.1
     source:
       Git: https://github.com/pulp-platform/hwpe-stream.git
     dependencies:
@@ -426,8 +426,8 @@ packages:
     - register_interface
     - tech_cells_generic
   register_interface:
-    revision: d7693be4aef1fc7e7eb2b00b41c42e87d959866c
-    version: 0.4.2
+    revision: e25b36670ff7aab3402f40efcc2b11ee0f31cf19
+    version: 0.4.3
     source:
       Git: https://github.com/pulp-platform/register_interface.git
     dependencies:
@@ -452,10 +452,10 @@ packages:
     - common_cells
     - tech_cells_generic
   safety_island:
-    revision: cc541a6cf5995eea29dd255db68fbe7d2cd10af6
+    revision: 582587edccefa6ef0306f6826505efc49fd92fb0
     version: null
     source:
-      Git: git@iis-git.ee.ethz.ch:carfield/safety-island.git
+      Git: git@github.com:Vyae/safety_island.git
     dependencies:
     - apb
     - axi
@@ -480,8 +480,8 @@ packages:
     dependencies:
     - tech_cells_generic
   serial_link:
-    revision: 77bec1aebd92b2ebea9962814f2370d5d48390c3
-    version: 1.1.0
+    revision: 5a25f5a71074f1ebb6de7b5280f2b16924bcc666
+    version: 1.1.1
     source:
       Git: https://github.com/pulp-platform/serial_link.git
     dependencies:
